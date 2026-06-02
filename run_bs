@@ -2,80 +2,94 @@
 
 # make clean && make # Debugging
 
-# BSDIR="/home/sric560/Documents/STARS"
-BSDIR='.'
-DATDIR="$BSDIR/dat"
-EXEDIR="$BSDIR"
+MAINDIR="/media/jgle703/Expansion/STARS-jgv4"
+#MAINDIR="/media/jamie/Expansion/STARS-jgv4"
+DATDIR="$MAINDIR/dat"
+RUNDIR=$1
 
+echo "$MAINDIR"
 echo "$DATDIR"
-echo "$EXEDIR"
+echo "$RUNDIR"
 
 # Clean up if previous run was aborted.
 # Touch prevents "no such file" error.
-touch fort.zorkzork
-rm -f fort.*
+touch $RUNDIR/fort.zorkzork
+rm -f $RUNDIR/fort.*
 
-if [ ! -f $EXEDIR/bs ]; then
+if [ ! -f $RUNDIR/bs ]; then
     echo "bs executable does not exist. Compiling..."
-    CURRENT_DIR=$(pwd)
     cd "$BSDIR"
     make clean
     make
-    cd "$CURRENT_DIR"
+    cd "$RUNDIR"
 fi
 
 #ls -lah src/
 #read -n 1 -s -r -p "Press any key to continue"
 
 # Remove old output files.
-#cd output
+cd "$RUNDIR"
 rm -f \
 out modout plot out2 plot2 \
 syntha syntha2 synthb synthb2 synthc synthc2 \
 centre centre2 surface surface2 \
-sneplot sneplot2
+sneplot sneplot2 accplot accplot2 overflow
 #cd ..
 #alias rm rm -i
 #rm -f *
 
 # Link code parameters for run.
-ln -s data fort.1
+ln -s $RUNDIR/data $RUNDIR/fort.1
 # useless debugging in fort.24
 
 # Link physical data files
-ln -s COtables fort.10
-ln -s $DATDIR/phys02.dat fort.11
-ln -s $DATDIR/nrate.dat fort.13
-ln -s $DATDIR/splinecoefficients.dat fort.14
+ln -s $DATDIR/COtables $RUNDIR/fort.10
+ln -s $DATDIR/phys02.dat $RUNDIR/fort.11
+ln -s $DATDIR/nrate.dat $RUNDIR/fort.13
+ln -s $DATDIR/splinecoefficients.dat $RUNDIR/fort.14
+
+ln -s massloss $RUNDIR/fort.100
+ln -s massloss2 $RUNDIR/fort.101
+ln -s fakewind $RUNDIR/fort.102
 
 # Link input for star 1 and 2
-ln -s modin fort.30   ; ln -s nucmodin fort.31   ;
-ln -s modin2 fort.50  ; ln -s nucmodin2 fort.51  ;
+ln -s $RUNDIR/modin $RUNDIR/fort.30   ; ln -s $RUNDIR/nucmodin $RUNDIR/fort.31   ;
+ln -s $RUNDIR/modin2 $RUNDIR/fort.50  ; ln -s $RUNDIR/nucmodin2 $RUNDIR/fort.51  ;
 
 # Link output for star 1
-ln -s out fort.32     ; ln -s plot fort.33      ;
-ln -s modout fort.34  ; ln -s nucmodout fort.35 ;
-ln -s syntha fort.36  ; ln -s synthb fort.37    ;
-ln -s synthc fort.38  ; ln -s surface fort.39   ;
-ln -s centre fort.40  ; ln -s sprocess fort.41  ;
-ln -s montage fort.42 ; ln -s adata fort.45     ;
-ln -s extra fort.47   ; ln -s sneplot fort.49
+ln -s $RUNDIR/out $RUNDIR/fort.32     ; ln -s $RUNDIR/plot $RUNDIR/fort.33      ;
+ln -s $RUNDIR/modout $RUNDIR/fort.34  ; ln -s $RUNDIR/nucmodout $RUNDIR/fort.35 ;
+ln -s $RUNDIR/syntha $RUNDIR/fort.36  ; ln -s $RUNDIR/synthb $RUNDIR/fort.37    ;
+ln -s $RUNDIR/synthc $RUNDIR/fort.38  ; ln -s $RUNDIR/surface $RUNDIR/fort.39   ;
+ln -s $RUNDIR/centre $RUNDIR/fort.40  ; ln -s $RUNDIR/sprocess $RUNDIR/fort.41  ;
+ln -s $RUNDIR/montage $RUNDIR/fort.42 ; ln -s $RUNDIR/adata $RUNDIR/fort.45     ;
+ln -s $RUNDIR/extra $RUNDIR/fort.47   ; ln -s $RUNDIR/sneplot $RUNDIR/fort.49
+
+# Link JLG's accretion output file for star 1
+ln -s $RUNDIR/accplot $RUNDIR/fort.44
+
+# Link output file for overflow routine
+ln -s $RUNDIR/overflow $RUNDIR/fort.999
+ln -s $RUNDIR/timestep $RUNDIR/fort.899
+
+# Link JGL's RMT file
+ln -s $RUNDIR/RMT $RUNDIR/fort.799
+
 
 # Link output for star 2
-ln -s out2 fort.52    ; ln -s plot2 fort.53     ;
-ln -s modout2 fort.54 ; ln -s nucmodout2 fort.55;
-ln -s syntha2 fort.56 ; ln -s synthb2 fort.57   ;
-ln -s synthc2 fort.58 ; ln -s surface2 fort.59  ;
-ln -s centre2 fort.60 ; ln -s sprocess2 fort.61 ;
-ln -s montage2 fort.62; ln -s sneplot2 fort.69
-ln -s extra2 fort.67
+ln -s $RUNDIR/out2 $RUNDIR/fort.52    ; ln -s $RUNDIR/plot2 $RUNDIR/fort.53     ;
+ln -s $RUNDIR/modout2 $RUNDIR/fort.54 ; ln -s $RUNDIR/nucmodout2 $RUNDIR/fort.55;
+ln -s $RUNDIR/syntha2 $RUNDIR/fort.56 ; ln -s $RUNDIR/synthb2 $RUNDIR/fort.57   ;
+ln -s $RUNDIR/synthc2 $RUNDIR/fort.58 ; ln -s $RUNDIR/surface2 $RUNDIR/fort.59  ;
+ln -s $RUNDIR/centre2 $RUNDIR/fort.60 ; ln -s $RUNDIR/sprocess2 $RUNDIR/fort.61 ;
+ln -s $RUNDIR/montage2 $RUNDIR/fort.62; ln -s $RUNDIR/sneplot2 $RUNDIR/fort.69
+ln -s $RUNDIR/extra2 $RUNDIR/fort.67  ; ln -s $RUNDIR/accplot2 $RUNDIR/fort.64
 # need to add - sprocess?
 
-
 # Run.
-$EXEDIR/bs
+$RUNDIR/bs
 #unalias rm
 #mv fort.99 vini
-rm -f fort.*
+rm -f $RUNDIR/fort.*
 #alias rm rm -i
 echo "Complete."
