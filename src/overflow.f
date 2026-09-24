@@ -1,6 +1,6 @@
       SUBROUTINE OVERFLOW(RMT_MODE, RLOF_MASS_LOSS, M1, M2, RLF, RMT)
       
-      ! M1, M2 in Eggleton units (10^33 g)
+!     M1, M2 in Eggleton units (10^33 g)
       
       IMPLICIT NONE
       
@@ -51,7 +51,7 @@
       F3(VX) = (VX**0.5D0) * (2D0/(VX+1D0))**((VX+1)/(2D0*(VX-1)))
       GAMMA_1(VX) = (32D0-24D0*VX-3D0*(VX*VX))/(24D0-21D0*VX)
       
-      ! Drop relevant physial quantities into specifically named arrays to make code more human readable
+!     Drop relevant physial quantities into specifically named arrays to make code more human readable
       DO K = 1, N_MESH
             R(K) = DEXP(H(7,K))*1D11  ! cm
             P(K) = SX(2,N_MESH+2-K)   ! g/(cm s2)
@@ -61,23 +61,23 @@
             BETA(K) = SX(34,N_MESH+2-K)
       END DO
       
-      ! Start with optically thin mass loss from Ritter 1988
+!     Start with optically thin mass loss from Ritter 1988
       OPTICALLY_THIN_MASS_LOSS = 0D0
-            
-      ! Want Roche lobe radius in solar units
       
-      AR = H(7,1) ! Get the radius of the primary in Eggleton units
-      SURFACE_R = R(1)            ! cm
-      R2 = SURFACE_R*SURFACE_R    ! cm2
+!     Want Roche lobe radius in solar units
       
-      AR_LOBE = AR-RLF            ! log(Eggleton)
-      R_LOBE = DEXP(AR_LOBE)*1D11 ! cm
+      AR = H(7,1)                         ! Get the radius of the primary in Eggleton units
+      SURFACE_R = R(1)                    ! cm
+      R2 = SURFACE_R*SURFACE_R            ! cm2
+      
+      AR_LOBE = AR-RLF                    ! log(Eggleton)
+      R_LOBE = DEXP(AR_LOBE)*1D11         ! cm
       
       DR_RLOBE = SURFACE_R-R_LOBE         ! cm
             
-      SURFACE_P = P(1)         ! g/(cm s2)
-      SURFACE_RHO = RHO(1)     ! g/cm3
-      SURFACE_T = T(1)         ! K
+      SURFACE_P = P(1)                    ! g/(cm s2)
+      SURFACE_RHO = RHO(1)                ! g/cm3
+      SURFACE_T = T(1)                    ! K
       SURFACE_MU = MU(1)
       SURFACE_BETA = BETA(1)
       
@@ -93,12 +93,12 @@
       
       Q = M2/M1 ! Using the version of Q given by Ritter
       
-      ! Restrict Q to valid range for Ritter (1988) A9
+!     Restrict Q to valid range for Ritter (1988) A9
       Q_RITTER = DMIN1(DMAX1(Q, 0.5D0), 10D0)
       
       F1 = 1.23D0 + 0.5D0 * DLOG10(Q_RITTER)
       
-      ! Restrict Q to valid range for Ritter (1988) Eq 7
+!     Restrict Q to valid range for Ritter (1988) Eq 7
       Q_RITTER = DMIN1(DMAX1(Q, 4D-2), 20D0)
       
       IF (Q_RITTER.LE.1d0) THEN
@@ -112,17 +112,17 @@
       
       HP_RITTER = HP_0/GAMMA ! cm
       
-C     This is a bit of a hack for now, I want to change this to allow for Ritter mass loss to be toggleable with a separate variable.
+!     This is a bit of a hack for now, I want to change this to allow for Ritter mass loss to be toggleable with a separate variable.
       IF (RMT_MODE.GE.2) THEN
             OPTICALLY_THIN_MASS_LOSS = (2D0*CPI/DEXP(0.5D0))*(V_SOUND**3D0)*((R_LOBE**3D0)/(CG*M1*1D33))*SURFACE_RHO*F1 ! g/s
       
-            ! Only allow exponential term in optically thin mass transfer when Roche lobe is underfilled (optically thin is saturated 
-            ! when Roche lobe filled).
+!     Only allow exponential term in optically thin mass transfer when Roche lobe is underfilled (optically thin is saturated 
+!     when Roche lobe filled).
             IF (PS(RLF).EQ.0d0) THEN 
                   OPTICALLY_THIN_MASS_LOSS = OPTICALLY_THIN_MASS_LOSS * DEXP(DR_RLOBE/HP_RITTER) ! g/s
             END IF
       
-            ! Rescale back to code units (Eggleton -- 10^33 g/s)
+!     Rescale back to code units (Eggleton -- 10^33 g/s)
             OPTICALLY_THIN_MASS_LOSS = OPTICALLY_THIN_MASS_LOSS/1D33
       
       END IF
@@ -131,16 +131,15 @@ C     This is a bit of a hack for now, I want to change this to allow for Ritter
       OPTICALLY_THICK_MASS_LOSS = 0D0
 
       IF (PS(RLF).NE.0d0) THEN
-            ! RMT_MODE=0 -- Hurley; RMT_MODE=2 -- Hurley + Ritter
+!     RMT_MODE=0 -- Hurley; RMT_MODE=2 -- Hurley + Ritter
             IF (RMT_MODE.EQ.0.OR.RMT_MODE.EQ.2) THEN ! HPT (2002) -- old version of RLOF in the code
-C Set limit for mass accretion at M/kelvin-helmholtz timescale
+!     Set limit for mass accretion at M/kelvin-helmholtz timescale
                   ACCRETION_MASS_LIMIT = 1d-2
                   
                   OPTICALLY_THICK_MASS_LOSS = DMIN1((RMT*((M1/M_SUN)**2d0)*((PS(RLF))**3d0)), ACCRETION_MASS_LIMIT*M_SUN/CSECYR)                  
             
-            ! RMT_MODE=1 -- Claeys; RMT_MODE=3 -- Claeys + Ritter
+!     RMT_MODE=1 -- Claeys; RMT_MODE=3 -- Claeys + Ritter
             ELSE IF (RMT_MODE.EQ.1.OR.RMT_MODE.EQ.3) THEN ! Claeys et al (2014)
-C                  RMT = M_SUN*3d-6/CSECYR ! This would overrule the data file, do I want this?
                   CLAEYS_FACTOR = 0d0
                   ACCRETION_MASS_LIMIT = 1d-2
 
@@ -162,9 +161,9 @@ C                  RMT = M_SUN*3d-6/CSECYR ! This would overrule the data file, 
                         END IF
                   END DO
             
-                  ! Find physical quantities at Roche lobe
+!     Find physical quantities at Roche lobe
             
-                  ! Find values between meshpoints above and below Roche lobe
+!     Find values between meshpoints above and below Roche lobe
                   
                   OUTER_R = R(R_LOBE_MESHPOINT)
                   INNER_R = R(R_LOBE_MESHPOINT+1)
@@ -191,7 +190,7 @@ C                  RMT = M_SUN*3d-6/CSECYR ! This would overrule the data file, 
                   D_MU = INNER_MU-OUTER_MU
                   D_BETA = INNER_BETA-OUTER_BETA
             
-                  ! Recast w.r.t radius
+!     Recast w.r.t radius
             
                   D_P = D_P/D_R
                   D_RHO = D_RHO/D_R
@@ -205,8 +204,8 @@ C                  RMT = M_SUN*3d-6/CSECYR ! This would overrule the data file, 
                   R_LOBE_MU = D_MU * (R_LOBE - INNER_R) + INNER_MU
                   R_LOBE_BETA = D_BETA * (R_LOBE - INNER_R) + INNER_BETA
                   
-                  ! Place Roche lobe quantites into interpolated arrays as entry 1 and surface quantities as entry 
-                  ! N_POINTS_INTERPOLATION
+!     Place Roche lobe quantites into interpolated arrays as entry 1 and surface quantities as entry 
+!     N_POINTS_INTERPOLATION
                   
                   INTERPOLATED_R(1) = R_LOBE
                   
@@ -225,16 +224,16 @@ C                  RMT = M_SUN*3d-6/CSECYR ! This would overrule the data file, 
                   INTERPOLATED_BETA(1) = R_LOBE_BETA
                   INTERPOLATED_BETA(N_POINTS_INTERPOLATION) = SURFACE_BETA
                   
-                  ! Interpolate part of mesh above Roche lobe to place N_POINTS_INTERPOLATION points between Roche lobe and surface, 
-                  ! evenly spaced in pressure.
+!     Interpolate part of mesh above Roche lobe to place N_POINTS_INTERPOLATION points between Roche lobe and surface, 
+!     evenly spaced in pressure.
                   INTERPOLATION_SPACING = (SURFACE_P-R_LOBE_P)/(N_POINTS_INTERPOLATION-1) ! cm
                   
-                  ! Distribute interpolation points
+!     Distribute interpolation points
                   DO INDEX = 1, N_POINTS_INTERPOLATION
                         INTERPOLATED_P(INDEX) = R_LOBE_P + (INDEX-1)*INTERPOLATION_SPACING
                   END DO
                   
-                  ! Interpolate remaining quantities
+!     Interpolate remaining quantities
                   DO INDEX = 2, N_POINTS_INTERPOLATION
                         OUTER_MESHPOINT = 0
                         DO K = 1, R_LOBE_MESHPOINT
@@ -265,17 +264,17 @@ C                  RMT = M_SUN*3d-6/CSECYR ! This would overrule the data file, 
                         INNER_BETA = BETA(INNER_MESHPOINT)
                         OUTER_BETA = BETA(OUTER_MESHPOINT)
                   
-                        ! Obtain gradients between inner and outer meshpoint
+!     Obtain gradients between inner and outer meshpoint
                         D_R = (OUTER_R-INNER_R)/(OUTER_P-INNER_P)
                         D_RHO = (OUTER_RHO-INNER_RHO)/(OUTER_P-INNER_P)
                         D_T = (OUTER_T-INNER_T)/(OUTER_P-INNER_P)
                         D_MU = (OUTER_MU-INNER_MU)/(OUTER_P-INNER_P)
                         D_BETA = (OUTER_BETA-INNER_BETA)/(OUTER_P-INNER_P)
                   
-                        ! Distance (in pressure) between interpolated point and inner meshpoint pressure
+!     Distance (in pressure) between interpolated point and inner meshpoint pressure
                         INTERPOLATION_DISTANCE = INTERPOLATED_P(INDEX) - INNER_P
                         
-                        ! Complete interpolation
+!     Complete interpolation
                         INTERPOLATED_R(INDEX) = D_R * INTERPOLATION_DISTANCE + INNER_R
                         INTERPOLATED_RHO(INDEX) = D_RHO * INTERPOLATION_DISTANCE + INNER_RHO
                         INTERPOLATED_T(INDEX) = D_T * INTERPOLATION_DISTANCE + INNER_T
@@ -283,25 +282,25 @@ C                  RMT = M_SUN*3d-6/CSECYR ! This would overrule the data file, 
                         INTERPOLATED_BETA(INDEX) = D_BETA * INTERPOLATION_DISTANCE + INNER_BETA
                   END DO
                   
-            ! Now integrate over interpolated region of the star for optically thick mass loss from Kolb & Ritter 1990
+!     Now integrate over interpolated region of the star for optically thick mass loss from Kolb & Ritter 1990
             
-            ! Compute integral in Kolb & Ritter A17 for each interpolated meshpoint above the Roche lobe
+!     Compute integral in Kolb & Ritter A17 for each interpolated meshpoint above the Roche lobe
                   DO INDEX = 1, N_POINTS_INTERPOLATION-1 ! Go from surface to R_LOBE
                         G_1 = GAMMA_1(INTERPOLATED_BETA(INDEX))
                         D_P = INTERPOLATED_P(INDEX)-INTERPOLATED_P(INDEX+1)     ! g/(cm s2)
                         V_SOUND = (G_1*INTERPOLATED_P(INDEX)/INTERPOLATED_RHO(INDEX))**(0.5D0) ! cm/s
                         OPTICALLY_THICK_MASS_LOSS = OPTICALLY_THICK_MASS_LOSS + F3(G_1) * V_SOUND * D_P ! should be in cgs (g/s)?
                   END DO
-                  ! Now add factors outside integrand
+!     Now add factors outside integrand
                   OPTICALLY_THICK_MASS_LOSS = (2D0*CPI*F1)*(R_LOBE**3D0)/(CG*M1*1D33)*OPTICALLY_THICK_MASS_LOSS ! Are these units right?
                   
-                  ! Rescale back to code units (Eggleton -- 10^33 g/s)
+!     Rescale back to code units (Eggleton -- 10^33 g/s)
                   OPTICALLY_THICK_MASS_LOSS = OPTICALLY_THICK_MASS_LOSS/1D33
             END IF
             
       END IF
       
-      ! Merge with OPTICALLY_THIN_MASS_LOSS
+!     Merge with OPTICALLY_THIN_MASS_LOSS
       RLOF_MASS_LOSS = OPTICALLY_THIN_MASS_LOSS + OPTICALLY_THICK_MASS_LOSS
       
       RETURN
