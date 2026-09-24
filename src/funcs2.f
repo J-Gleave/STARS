@@ -544,7 +544,7 @@
       YLIN(41,24) = (RPSI28 - RPAL27)/XA2(41)
       YLIN(42,24) = (- RAMG24 - RAMG25n)/XA2(42)
       YLIN(43,24) = - RCO/XA2(43)
-C 25th eq Si29
+! 25th eq Si29
       YLIN(2 ,25) = (RnSi29 - RnSi28 - RnS32a)/XA2(2)
       YLIN(19,25) = - RAMG25/XA2(19)
       YLIN(20,25) = - RAMG26n/XA2(20)
