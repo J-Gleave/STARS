@@ -467,7 +467,6 @@
       GO TO 40
 ! Almost end of initial input section. Start of regular update section
    30 IF ( IEND.NE.0 ) GO TO 31
-
       CALL COMPOS
 
 ! Store certain previous values, for possible emergency restart
@@ -658,9 +657,7 @@
             RETURN
       END IF
 ! End of regular update section. Intermediate or final output section
-   31 IF (IEND.EQ.2) THEN
-            GO TO 32
-      END IF
+   31 IF (IEND.EQ.2) GO TO 32
 
       SM = DEXP(H(4,1))/MSUN
       SM2 = DEXP(H(19,1))/MSUN
@@ -723,9 +720,7 @@
       RETURN
 
 ! End of final output section. Start of emergency restart section
-   32 IF ( IHOLD .LE. 0 ) THEN
-            GO TO 34
-      END IF
+   32 IF ( IHOLD .LE. 0 ) GO TO 34
       AGE = PR(1)
       DT = PR(2)
       M1 = PR(3)
